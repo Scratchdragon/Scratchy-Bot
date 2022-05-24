@@ -3,10 +3,11 @@ import os
 import sys
 import subprocess
 from discord.utils import get
-from discord.ext import commands
 from discord.flags import Intents
 from discord.ext import commands
+from discord.ext import tasks
 from discordpy_slash.slash import *
+import datetime
 
 import operator
 from multiprocessing import Process
@@ -136,7 +137,19 @@ def print_status():
 	print("Active servers (" + str(len(client.guilds)) + "):")
 	for guild in client.guilds:
 		print(guild.name)
-		
+
+# Auto del loop
+@tasks.loop(seconds=1.0)
+async def loop(): 
+	now = datetime.datetime.now()
+	for item in auto_del:
+		messages = await item.history(limit=100).flatten()
+		for msg in messages:
+			if((now - msg.created_at).total_seconds() > auto_del[item]):
+				await msg.delete()
+
+loop.start()
+				
 # ON READY :
 
 @client.event
