@@ -21,6 +21,8 @@ downvote_emoji = "<:Downvote:";
 posts = {}
 post_depth = 5000
 
+auto_del = {}
+
 prev_debug_load = "0"
 
 Intents = discord.Intents.default()
@@ -32,6 +34,18 @@ command_dict = {
 	"say" : [{
 		"name" : "Greet", "value" : "Hi!" },{
 		"name" : "Cum", "value" : "cum"
+	}],
+	"auto_delete" : [{
+		"name" : "10 seconds", "value" : "10" },{
+		"name" : "20 seconds", "value" : "20" },{
+		"name" : "30 seconds", "value" : "30" },{
+		"name" : "1 minute", "value" : "60" },{
+		"name" : "2 minutes", "value" : "120" },{
+		"name" : "10 minutes", "value" : "600"},{
+		"name" : "30 minutes", "value" : "1800" },{
+		"name" : "1 hour", "value" : "3600" },{
+		"name" : "2 hour", "value" : "7200" },{
+		"name" : "12 hour", "value" : "43200"
 	}],
 	"leaderboard" : [{
 		"name" : "5", "value" : "5" },{
@@ -133,6 +147,7 @@ async def on_ready():
 		await client.change_presence(activity=discord.Game(name="!leaderboard for most upvoted/downvoted messages."))
 		print_status()
 
+# / Commands:
 
 @client.command()
 async def say(ctx, message):
@@ -166,7 +181,11 @@ async def leaderboard(ctx,top="0"):
 					
 				embed=discord.Embed(title="LEADERBOARD", description = "Top " + (top) + " best posts:\n" + sendmsg + "\nTop " + (top) + " worst posts:\n" + sendmsg2 , color=0xFF5733)
 				await ctx.send(embed=embed)
-		
+
+@client.command()
+async def auto_delete(ctx,time="10"):
+		auto_del[ctx.channel] = int(time)
+# ! Commands
 
 @client.event
 async def on_message(message):
