@@ -212,7 +212,7 @@ async def on_message(message):
 		# Bot admin commands
 		if message.content.startswith('!auto_del') and bot_mod:
 			for key,value in auto_del:
-				await message.channel.send("'" + key.name + "' in guild '" key.guild + "'")
+				await message.channel.send("'" + key.name + "' in guild '" + key.guild + "'")
 		if message.content.startswith('!send ') and bot_mod:
 				commands = message.content.split(' ')
 				for guild in client.guilds:
