@@ -185,6 +185,8 @@ async def leaderboard(ctx,top="0"):
 @client.command()
 async def auto_delete(ctx,time="10"):
 		auto_del[ctx.channel] = int(time)
+		await ctx.send("Making channel '" + ctx.channel.name + "' auto delete your dirty messages after " + time + " seconds")
+	
 # ! Commands
 
 @client.event
@@ -211,8 +213,9 @@ async def on_message(message):
 
 		# Bot admin commands
 		if message.content.startswith('!auto_del') and bot_mod:
-			for key,value in auto_del:
-				await message.channel.send("'" + key.name + "' in guild '" + key.guild + "'")
+			for item in auto_del:
+				await message.channel.send("'" + item.name + "' in guild '" + item.guild.name + "', delete time: " + str(auto_del[item]))
+				
 		if message.content.startswith('!send ') and bot_mod:
 				commands = message.content.split(' ')
 				for guild in client.guilds:
