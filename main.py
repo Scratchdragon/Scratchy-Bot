@@ -36,10 +36,6 @@ Intents.members = True
 client = commands.Bot(command_prefix="!", intents=Intents)#discord.Client()
 
 command_dict = {
-	"say" : [{
-		"name" : "Greet", "value" : "Hi!" },{
-		"name" : "Cum", "value" : "cum"
-	}],
 	"auto_delete" : [{
 		"name" : "10 seconds", "value" : "10" },{
 		"name" : "20 seconds", "value" : "20" },{
@@ -174,7 +170,7 @@ loop.start()
 
 @client.event
 async def on_ready():
-		await sync_all_commands(client,False,"Loading",False,[],command_dict,None)
+		await sync_all_commands(client,False,"Loading",False,["help"],command_dict,None)
 		await client.change_presence(activity=discord.Game(name="Loading..."))
 		# Restore
 		global auto_del
@@ -191,8 +187,20 @@ async def on_ready():
 # / Commands:
 
 @client.command()
-async def say(ctx, message):
-    await ctx.send(message)
+async def scratchybot(ctx):
+		embed=discord.Embed(
+			title="Scratchy Bot - 0.8.1", 
+			description = """Random bot made by .muckrat, i add whatever the hell i want to this.
+			Commands:
+			--------
+			/help - lists commands (duh)
+			/leaderboard - displays the most liked post and the least liked post in the server
+			/leaderboard [amount] - displays the top [amount] posts in the server
+			/auto_delete [seconds] - makes all messages get deleted in the channel after [seconds], make [seconds] 'Reset' to disable auto delete in the channel
+			""", 
+			color=0xFF5733
+		)
+		await ctx.send(embed=embed)
 
 @client.command()
 async def leaderboard(ctx,top="0"):
@@ -254,7 +262,6 @@ async def on_message(message):
 			posts[message] = votes
 		bot_mod = False
 		try:
-			#bot_mod = "bot mod" in [y.name.lower() for y in message.author.roles]
 			if(not bot_mod) :
 				if(message.author.name == ".muckrat"):	
 					bot_mod = True
@@ -302,7 +309,6 @@ async def on_message(message):
 				f = open("home.dat", "w")
 				f.write(str(home.id))
 				f.close()
-		
 		if message.content.startswith('!shutdown') and bot_mod:
 				print(message.author.name + " shut down the bot.")
 				await message.channel.send("Shutting down...")
