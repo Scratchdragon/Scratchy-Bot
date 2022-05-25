@@ -2,11 +2,15 @@ import discord
 import os
 import sys
 import subprocess
+import pickle
+
 from discord.utils import get
 from discord.flags import Intents
 from discord.ext import commands
 from discord.ext import tasks
 from discordpy_slash.slash import *
+from discord.ext.commands import has_permissions
+
 import datetime
 
 import operator
@@ -46,7 +50,8 @@ command_dict = {
 		"name" : "30 minutes", "value" : "1800" },{
 		"name" : "1 hour", "value" : "3600" },{
 		"name" : "2 hour", "value" : "7200" },{
-		"name" : "12 hour", "value" : "43200"
+		"name" : "12 hour", "value" : "43200" },{
+		"name" : "Reset", "value" : "none"
 	}],
 	"leaderboard" : [{
 		"name" : "5", "value" : "5" },{
@@ -142,11 +147,26 @@ def print_status():
 @tasks.loop(seconds=1.0)
 async def loop(): 
 	now = datetime.datetime.now()
-	for item in auto_del:
-		messages = await item.history(limit=100).flatten()
-		for msg in messages:
-			if((now - msg.created_at).total_seconds() > auto_del[item]):
-				await msg.delete()
+	try:
+		for item in auto_del:
+			channel = client.get_channel(item)
+			messages = await client.get_channel(item).history(limit=5000).flatten()
+			delqueue = []
+			count = 0
+			for msg in messages:
+				if((now - msg.created_at).total_seconds() > auto_del[item]):
+					if((now - msg.created_at).days > 13):
+						count = count + 1
+						await msg.delete()
+					else:
+						delqueue.append(msg)
+			count = len(delqueue) + count
+			if(len(delqueue) > 0) :
+				await channel.delete_messages(delqueue)
+			if(count > 0) :
+				print("Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
+	except:
+		print("Error in loop() (line 145)")
 
 loop.start()
 				
@@ -156,6 +176,14 @@ loop.start()
 async def on_ready():
 		await sync_all_commands(client,False,"Loading",False,[],command_dict,None)
 		await client.change_presence(activity=discord.Game(name="Loading..."))
+		# Restore
+		global auto_del
+		try:
+			with open('auto_del.pkl', 'rb') as f:
+				auto_del = pickle.load(f)
+		except:
+			print("auto_del.pkl file is not written")
+			
 		await load_posts(post_depth)
 		await client.change_presence(activity=discord.Game(name="!leaderboard for most upvoted/downvoted messages."))
 		print_status()
@@ -197,9 +225,21 @@ async def leaderboard(ctx,top="0"):
 
 @client.command()
 async def auto_delete(ctx,time="10"):
-		auto_del[ctx.channel] = int(time)
-		await ctx.send("Making channel '" + ctx.channel.name + "' auto delete your dirty messages after " + time + " seconds")
-	
+	if(ctx.message.author.guild_permissions.manage_channels):
+		if(time=="none"):
+			auto_del.pop(ctx.channel.id)
+			await ctx.send("Removed auto delete")
+			with open('auto_del.pkl', 'wb') as f:
+				pickle.dump(auto_del, f)
+		else:
+			auto_del[ctx.channel.id] = int(time)
+			await ctx.send("Making channel '" + ctx.channel.name + "' auto delete your dirty messages after " + time + " seconds")
+			with open('auto_del.pkl', 'wb') as f:
+				pickle.dump(auto_del, f)
+	else :
+		await ctx.send("Insufficient permissions")
+
+		
 # ! Commands
 
 @client.event
@@ -227,7 +267,8 @@ async def on_message(message):
 		# Bot admin commands
 		if message.content.startswith('!auto_del') and bot_mod:
 			for item in auto_del:
-				await message.channel.send("'" + item.name + "' in guild '" + item.guild.name + "', delete time: " + str(auto_del[item]))
+				channel = client.get_channel(item)
+				await message.channel.send("'" + channel.name + "' in guild '" + channel.guild.name + "', delete time: " + str(auto_del[item]))
 				
 		if message.content.startswith('!send ') and bot_mod:
 				commands = message.content.split(' ')
