@@ -30,12 +30,16 @@ auto_del = {}
 
 prev_debug_load = "0"
 
+log = []
+loaded = False
+
 Intents = discord.Intents.default()
 Intents.reactions = True
 Intents.members = True
 client = commands.Bot(command_prefix="!", intents=Intents)#discord.Client()
 
 command_dict = {
+	"voterat" : [{}],
 	"auto_delete" : [{
 		"name" : "10 seconds", "value" : "10" },{
 		"name" : "20 seconds", "value" : "20" },{
@@ -138,10 +142,16 @@ def print_status():
 	print("Active servers (" + str(len(client.guilds)) + "):")
 	for guild in client.guilds:
 		print(guild.name)
+	print("------------------")
+	print("Console log: ")
+	for item in log:
+		print(item)
 
 # Auto del loop
 @tasks.loop(seconds=1.0)
 async def loop(): 
+	if(loaded) :
+		print_status()
 	now = datetime.datetime.now()
 	try:
 		for item in auto_del:
@@ -160,9 +170,9 @@ async def loop():
 			if(len(delqueue) > 0) :
 				await channel.delete_messages(delqueue)
 			if(count > 0) :
-				print("Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
+				log.append(str(now) + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
 	except:
-		print("Error in loop() (line 145)")
+		log.append(str(now) + " : Error in loop() (line 145)")
 
 loop.start()
 				
@@ -170,7 +180,7 @@ loop.start()
 
 @client.event
 async def on_ready():
-		await sync_all_commands(client,False,"Loading",False,["help"],command_dict,None)
+		await sync_all_commands(client,False,"Loading",False,["help","help2","scratchybot"],command_dict,None)
 		await client.change_presence(activity=discord.Game(name="Loading..."))
 		# Restore
 		global auto_del
@@ -182,21 +192,33 @@ async def on_ready():
 			
 		await load_posts(post_depth)
 		await client.change_presence(activity=discord.Game(name="!leaderboard for most upvoted/downvoted messages."))
-		print_status()
+		global loaded
+		loaded = True
 
 # / Commands:
 
 @client.command()
-async def scratchybot(ctx):
+async def voterat(ctx):
+		now = datetime.datetime.now()
+		log.append(str(now) + " : User '" + ctx.message.author.name + "' used command '/voterat' in guild '" + ctx.guild.name + "'")
 		embed=discord.Embed(
-			title="Scratchy Bot - 0.8.1", 
+			title="Voterat - 0.8.1", 
 			description = """Random bot made by .muckrat, i add whatever the hell i want to this.
 			Commands:
 			--------
-			/help - lists commands (duh)
+			/voterat - lists commands and gives bot info (duh)
 			/leaderboard - displays the most liked post and the least liked post in the server
 			/leaderboard [amount] - displays the top [amount] posts in the server
 			/auto_delete [seconds] - makes all messages get deleted in the channel after [seconds], make [seconds] 'Reset' to disable auto delete in the channel
+
+			Vote System:
+			-----------
+			Emojis called "Upvote" will be treated as upvotes and emojis called "Downvote" will be treated as downvotes.
+
+			Other Info:
+			----------
+			Use this link for sharing this bot https://discord.com/api/oauth2/authorize?client_id=753498523659665468&permissions=295279258737&scope=bot%20applications.commands
+			Message .muckrat#1991 if something goes wrong (which will probably happen)
 			""", 
 			color=0xFF5733
 		)
@@ -204,6 +226,8 @@ async def scratchybot(ctx):
 
 @client.command()
 async def leaderboard(ctx,top="0"):
+	now = datetime.datetime.now()
+	log.append(str(now) + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
 	await redo_votes(ctx.channel)
 
 	if(len(posts) == 0):
@@ -233,6 +257,8 @@ async def leaderboard(ctx,top="0"):
 
 @client.command()
 async def auto_delete(ctx,time="10"):
+	now = datetime.datetime.now()
+	log.append(str(now) + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
 	if(ctx.message.author.guild_permissions.manage_channels):
 		if(time=="none"):
 			auto_del.pop(ctx.channel.id)
