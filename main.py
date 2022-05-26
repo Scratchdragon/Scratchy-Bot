@@ -59,6 +59,11 @@ command_dict = {
 	}]
 }
 
+def log(item) :
+	log.append(item)
+	with open('log.txt', 'w') as f:
+		pickle.dump(log, f)
+
 async def renew_msg(msg):
 	out = msg
 	for guild in client.guilds:
@@ -144,8 +149,11 @@ def print_status():
 		print(guild.name)
 	print("------------------")
 	print("Console log: ")
+	i = 0
 	for item in log:
-		print(item)
+		if(len(log) - i <= 10) :
+			print(item)
+		i = i + 1
 
 # Auto del loop
 @tasks.loop(seconds=1.0)
@@ -170,9 +178,9 @@ async def loop():
 			if(len(delqueue) > 0) :
 				await channel.delete_messages(delqueue)
 			if(count > 0) :
-				log.append(str(now) + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
+				log(str(now) + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
 	except:
-		log.append(str(now) + " : Error in loop() (line 145)")
+		log(str(now) + " : Error in loop() (line 145)")
 
 loop.start()
 				
@@ -183,12 +191,19 @@ async def on_ready():
 		await sync_all_commands(client,False,"Loading",False,["help","help2","scratchybot"],command_dict,None)
 		await client.change_presence(activity=discord.Game(name="Loading..."))
 		# Restore
+		global log
 		global auto_del
 		try:
 			with open('auto_del.pkl', 'rb') as f:
 				auto_del = pickle.load(f)
 		except:
 			print("auto_del.pkl file is not written")
+			
+		try:
+			with open('log.txt', 'w') as f:
+				log = pickle.load(f)
+		except:
+			print("log.txt file is not written")
 			
 		await load_posts(post_depth)
 		await client.change_presence(activity=discord.Game(name="!leaderboard for most upvoted/downvoted messages."))
@@ -200,7 +215,7 @@ async def on_ready():
 @client.command()
 async def voterat(ctx):
 		now = datetime.datetime.now()
-		log.append(str(now) + " : User '" + ctx.message.author.name + "' used command '/voterat' in guild '" + ctx.guild.name + "'")
+		log(str(now) + " : User '" + ctx.message.author.name + "' used command '/voterat' in guild '" + ctx.guild.name + "'")
 		embed=discord.Embed(
 			title="Voterat - 0.8.1", 
 			description = """Random bot made by .muckrat, i add whatever the hell i want to this.
@@ -227,7 +242,7 @@ async def voterat(ctx):
 @client.command()
 async def leaderboard(ctx,top="0"):
 	now = datetime.datetime.now()
-	log.append(str(now) + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
+	log(str(now) + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
 	await redo_votes(ctx.channel)
 
 	if(len(posts) == 0):
@@ -258,7 +273,7 @@ async def leaderboard(ctx,top="0"):
 @client.command()
 async def auto_delete(ctx,time="10"):
 	now = datetime.datetime.now()
-	log.append(str(now) + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
+	log(str(now) + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
 	if(ctx.message.author.guild_permissions.manage_channels):
 		if(time=="none"):
 			auto_del.pop(ctx.channel.id)
