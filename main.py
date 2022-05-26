@@ -393,8 +393,8 @@ async def on_raw_reaction_remove(payload):
 			posts.pop(item)
 	posts[await client.get_channel(payload.channel_id).fetch_message] = 0
 
-post_depth = int(input("Message depth: "))
-if(input("Use bot token? (Y/N)") == 'Y'):
-	client.run(input("Bot token: "))
+post_depth = int(sys.argv[1])
+if(sys.argv[2] == 'Y'):
+	client.run(sys.argv[3])
 else:
-	client.run(input("User token: "), bot=False)
+	client.run(sys.argv[3], bot=False)
