@@ -30,7 +30,7 @@ auto_del = {}
 
 prev_debug_load = "0"
 
-log = []
+_log = []
 loaded = False
 
 Intents = discord.Intents.default()
@@ -60,9 +60,9 @@ command_dict = {
 }
 
 def log(item) :
-	log.append(item)
-	with open('log.txt', 'w') as f:
-		pickle.dump(log, f)
+	_log.append(item)
+	with open('log.txt', 'wb') as f:
+		pickle.dump(_log, f)
 
 async def renew_msg(msg):
 	out = msg
@@ -150,8 +150,8 @@ def print_status():
 	print("------------------")
 	print("Console log: ")
 	i = 0
-	for item in log:
-		if(len(log) - i <= 10) :
+	for item in _log:
+		if(len(_log) - i <= 10) :
 			print(item)
 		i = i + 1
 
@@ -160,6 +160,9 @@ def print_status():
 async def loop(): 
 	if(loaded) :
 		print_status()
+		if(os.environ["restartbot"] == "true"):
+			await client.close()
+			print("Restarting bot")
 	now = datetime.datetime.now()
 	try:
 		for item in auto_del:
@@ -179,8 +182,8 @@ async def loop():
 				await channel.delete_messages(delqueue)
 			if(count > 0) :
 				log(str(now) + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
-	except:
-		log(str(now) + " : Error in loop() (line 145)")
+	except Exception as e:
+		log(str(now) + " : Error in loop() " + str(e))
 
 loop.start()
 				
@@ -188,10 +191,11 @@ loop.start()
 
 @client.event
 async def on_ready():
+		os.environ["restartbot"] = "false"
 		await sync_all_commands(client,False,"Loading",False,["help","help2","scratchybot"],command_dict,None)
 		await client.change_presence(activity=discord.Game(name="Loading..."))
 		# Restore
-		global log
+		global _log
 		global auto_del
 		try:
 			with open('auto_del.pkl', 'rb') as f:
@@ -200,8 +204,8 @@ async def on_ready():
 			print("auto_del.pkl file is not written")
 			
 		try:
-			with open('log.txt', 'w') as f:
-				log = pickle.load(f)
+			with open('log.txt', 'rb') as f:
+				_log = pickle.load(f)
 		except:
 			print("log.txt file is not written")
 			
@@ -351,9 +355,12 @@ async def on_message(message):
 				f.write(str(home.id))
 				f.close()
 		if message.content.startswith('!shutdown') and bot_mod:
-				print(message.author.name + " shut down the bot.")
+				log(message.author.name + " shut down the bot.")
 				await message.channel.send("Shutting down...")
 				await client.close()
+		if message.content.startswith('!restart') and bot_mod:
+				log(message.author.name + " restarted the bot.")
+				os.environ["restartbot"] = "true"
 
 @client.event
 async def on_reaction_add(reaction, user):
