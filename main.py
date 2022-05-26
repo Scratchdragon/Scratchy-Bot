@@ -210,7 +210,7 @@ async def on_ready():
 			print("log.txt file is not written")
 			
 		await load_posts(post_depth)
-		await client.change_presence(activity=discord.Game(name="!leaderboard for most upvoted/downvoted messages."))
+		await client.change_presence(activity=discord.Game(name="/leaderboard for most upvoted/downvoted messages."))
 		global loaded
 		loaded = True
 
@@ -317,6 +317,17 @@ async def on_message(message):
 				return
 
 		# Bot admin commands
+		if message.content.startswith('!log') and bot_mod:
+			# write to file
+			with open("log.txt", "w") as file:
+				file.write("\n".join(_log))
+    
+			# send file to Discord in message
+			with open("result.txt", "rb") as file:
+				await ctx.send("Latest log: ", file=discord.File(file, "log.txt"))
+
+			os.remove("log.txt")
+				
 		if message.content.startswith('!auto_del') and bot_mod:
 			for item in auto_del:
 				channel = client.get_channel(item)
