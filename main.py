@@ -323,7 +323,7 @@ async def on_message(message):
 				file.write("\n".join(_log))
     
 			# send file to Discord in message
-			with open("result.txt", "rb") as file:
+			with open("log.txt", "rb") as file:
 				await ctx.send("Latest log: ", file=discord.File(file, "log.txt"))
 
 			os.remove("log.txt")
