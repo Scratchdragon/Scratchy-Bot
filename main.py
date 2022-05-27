@@ -166,6 +166,11 @@ async def loop():
 			await client.close()
 			print("Restarting bot")
 	now = datetime.datetime.now()
+	_now = str(datetime.datetime.now().hour) + ":"
+	if(datetime.datetime.now().minute < 10):
+		_now = _now + "0" + str(datetime.datetime.now().minute)
+	else:
+		_now = _now + str(datetime.datetime.now().minute)
 	try:
 		for item in auto_del:
 			channel = client.get_channel(item)
@@ -183,10 +188,10 @@ async def loop():
 			if(len(delqueue) > 0) :
 				await channel.delete_messages(delqueue)
 			if(count > 0) :
-				log(str(now) + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
+				log(_now + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
 	except Exception as e:
 		exp = str(type(e)) + " " + str(e.args) + " " + str(e)
-		log(str(now) + " : Error in loop() " + exp)
+		log(_now + " : Error in loop() " + exp)
 
 loop.start()
 				
@@ -212,10 +217,15 @@ async def on_ready():
 		except:
 			print("log.txt file is not written")
 
-		log("\n" + str(datetime.datetime.now()) + " : Starting Bot")
-		log(str(datetime.datetime.now()) + " : Loading Posts")
+		now = str(datetime.datetime.now().hour) + ":"
+		if(datetime.datetime.now().minute < 10):
+			now = now + "0" + str(datetime.datetime.now().minute)
+		else:
+			now = now + str(datetime.datetime.now().minute)
+		log("\n" + now + " : Starting Bot")
+		log(now + " : Loading Posts")
 		await load_posts(post_depth)
-		log(str(datetime.datetime.now()) + " : Posts loaded")
+		log(now + " : Posts loaded")
 		await client.change_presence(activity=discord.Game(name="/leaderboard for most upvoted/downvoted messages."))
 		global loaded
 		loaded = True
@@ -224,8 +234,12 @@ async def on_ready():
 
 @client.command()
 async def voterat(ctx):
-		now = datetime.datetime.now()
-		log(str(now) + " : User '" + ctx.message.author.name + "' used command '/voterat' in guild '" + ctx.guild.name + "'")
+		now = str(datetime.datetime.now().hour) + ":"
+		if(datetime.datetime.now().minute < 10):
+			now = now + "0" + str(datetime.datetime.now().minute)
+		else:
+			now = now + str(datetime.datetime.now().minute)
+		log(now + " : User '" + ctx.message.author.name + "' used command '/voterat' in guild '" + ctx.guild.name + "'")
 		embed=discord.Embed(
 			title="Voterat - 0.8.1", 
 			description = """Random bot made by .muckrat, i add whatever the hell i want to this.
@@ -251,9 +265,13 @@ async def voterat(ctx):
 
 @client.command()
 async def leaderboard(ctx,top="0"):
+	now = str(datetime.datetime.now().hour) + ":"
+	if(datetime.datetime.now().minute < 10):
+		now = now + "0" + str(datetime.datetime.now().minute)
+	else:
+		now = now + str(datetime.datetime.now().minute)
 	try:
-		now = datetime.datetime.now()
-		log(str(now) + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
+		log(now + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
 		await redo_votes(ctx.channel)
 
 		if(len(posts) == 0):
@@ -282,13 +300,17 @@ async def leaderboard(ctx,top="0"):
 				await ctx.send(embed=embed)
 	except Exception as e:
 		exp = str(type(e)) + " " + str(e.args) + " " + str(e)
-		log(str(now) + " : Error in /leaderboard " + exp)
+		log(now + " : Error in /leaderboard " + exp)
 
 @client.command()
 async def auto_delete(ctx,time="10"):
+	now = str(datetime.datetime.now().hour) + ":"
+	if(datetime.datetime.now().minute < 10):
+		now = now + "0" + str(datetime.datetime.now().minute)
+	else:
+		now = now + str(datetime.datetime.now().minute)
 	try:
-		now = datetime.datetime.now()
-		log(str(now) + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
+		log(now + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
 		if(ctx.message.author.guild_permissions.manage_channels):
 			if(time=="none"):
 				auto_del.pop(ctx.channel.id)
@@ -304,7 +326,7 @@ async def auto_delete(ctx,time="10"):
 			await ctx.send("Insufficient permissions")
 	except Exception as e:
 		exp = str(type(e)) + " " + str(e.args) + " " + str(e)
-		log(str(now) + " : Error in /leaderboard " + exp)
+		log(now + " : Error in /leaderboard " + exp)
 		
 # ! Commands
 
@@ -326,9 +348,18 @@ async def on_message(message):
 				return
 
 		# Bot admin commands
-		if message.content.startswith('!log.wipe') and bot_mod:
+		if message.content.startswith('!wipe') and bot_mod:
 			_log.clear()
+			now = str(datetime.datetime.now().hour) + ":"
+			if(datetime.datetime.now().minute < 10):
+				now = now + "0" + str(datetime.datetime.now().minute)
+			else:
+				now = now + str(datetime.datetime.now().minute)
+				
+			log("Log cleared by " + message.author.name + "at " + now)
+			await message.channel.send("Cleared log")
 		if message.content.startswith('!log') and bot_mod:
+			await message.channel.send("Opening and decoding log...")
 			# write to file
 			with open("log.txt", "w") as file:
 				file.write("\n".join(_log))
