@@ -61,7 +61,7 @@ command_dict = {
 
 def log(item) :
 	_log.append(item)
-	with open('log.txt', 'wb') as f:
+	with open('log.pkl', 'wb') as f:
 		pickle.dump(_log, f)
 
 async def renew_msg(msg):
@@ -204,7 +204,7 @@ async def on_ready():
 			print("auto_del.pkl file is not written")
 			
 		try:
-			with open('log.txt', 'rb') as f:
+			with open('log.pkl', 'rb') as f:
 				_log = pickle.load(f)
 		except:
 			print("log.txt file is not written")
