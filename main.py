@@ -108,7 +108,7 @@ def filter_posts(p,guild) :
 	dict = {}
 	for item in p:
 		if isinstance(item.channel, discord.channel.DMChannel):
-			p.pop[item]
+			p.pop[item)
 		if(item.channel.guild.id == guild.id) :
 			dict[item] = p[item]
 	return dict
@@ -210,8 +210,11 @@ async def on_ready():
 				_log = pickle.load(f)
 		except:
 			print("log.txt file is not written")
-			
+
+		log("\n" + str(datetime.datetime.now()) + " : Starting Bot")
+		log(str(datetime.datetime.now()) + " : Loading Posts")
 		await load_posts(post_depth)
+		log(str(datetime.datetime.now()) + " : Posts loaded")
 		await client.change_presence(activity=discord.Game(name="/leaderboard for most upvoted/downvoted messages."))
 		global loaded
 		loaded = True
