@@ -108,7 +108,7 @@ def filter_posts(p,guild) :
 	dict = {}
 	for item in p:
 		if isinstance(item.channel, discord.channel.DMChannel):
-			p.pop[item)
+			p.pop(item)
 		if(item.channel.guild.id == guild.id) :
 			dict[item] = p[item]
 	return dict
