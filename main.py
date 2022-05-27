@@ -3,20 +3,19 @@ import os
 import sys
 import subprocess
 import pickle
+import datetime
+import operator
+import urllib
+import json
 
 from discord.utils import get
 from discord.flags import Intents
 from discord.ext import commands
 from discord.ext import tasks
-from discordpy_slash.slash import *
 from discord.ext.commands import has_permissions
-
-import datetime
-
-import operator
+from discordpy_slash.slash import *
 from multiprocessing import Process
 
-import urllib, json
 
 py_version = str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2])
 
@@ -196,7 +195,6 @@ async def loop():
 loop.start()
 				
 # ON READY :
-
 @client.event
 async def on_ready():
 		os.environ["restartbot"] = "false"
