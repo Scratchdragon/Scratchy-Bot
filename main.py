@@ -36,7 +36,7 @@ loaded = False
 Intents = discord.Intents.default()
 Intents.reactions = True
 Intents.members = True
-client = commands.Bot(command_prefix="!", intents=Intents)#discord.Client()
+client = commands.Bot(command_prefix="!", intents=Intents)
 
 command_dict = {
 	"voterat" : [{}],
@@ -185,7 +185,8 @@ async def loop():
 			if(count > 0) :
 				log(str(now) + " : Auto deleted " + str(count) + " messages from guild '" + channel.guild.name + "' in channel '" + channel.name + "'")
 	except Exception as e:
-		log(str(now) + " : Error in loop() " + str(e))
+		exp = str(type(e)) + " " + str(e.args) + " " + str(e)
+		log(str(now) + " : Error in loop() " + exp)
 
 loop.start()
 				
@@ -250,23 +251,24 @@ async def voterat(ctx):
 
 @client.command()
 async def leaderboard(ctx,top="0"):
-	now = datetime.datetime.now()
-	log(str(now) + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
-	await redo_votes(ctx.channel)
+	try:
+		now = datetime.datetime.now()
+		log(str(now) + " : User '" + ctx.message.author.name + "' used command '/leaderboard' in guild '" + ctx.guild.name + "'")
+		await redo_votes(ctx.channel)
 
-	if(len(posts) == 0):
-		await ctx.send("There are no recorded posts to send")
-	else:
-		a_dictionary = filter_posts(posts,ctx.guild)
-		highest = max(a_dictionary, key=a_dictionary.get)
-		lowest = min(a_dictionary, key=a_dictionary.get)
+		if(len(posts) == 0):
+			await ctx.send("There are no recorded posts to send")
+		else:
+			a_dictionary = filter_posts(posts,ctx.guild)
+			highest = max(a_dictionary, key=a_dictionary.get)
+			lowest = min(a_dictionary, key=a_dictionary.get)
 
-	if(top == "0") :
+		if(top == "0") :
 			#Define Embed (very messy)
 			embed=discord.Embed(title="LEADERBOARD", description = "Most popular (upvoted) [**'" + highest.content + "'**](" + highest.jump_url +") by " + highest.author.mention + " in channel " + highest.channel.mention + " with " + str(posts[highest]) + " votes.\n" + "Most unpopular (downvoted) [**'" + lowest.content + "'**](" + lowest.jump_url + ") by " + lowest.author.mention + "in channel" + lowest.channel.mention +" with " + str(posts[lowest]) + " votes.\n" , color=0xFF5733)
 			# End embed
 			await ctx.send(embed=embed)
-	else:
+		else:
 				senddict = dict(sorted(a_dictionary.items(), key=operator.itemgetter(1), reverse=True)[:int(top)])
 				sendmsg = ""
 				for key, value in senddict.items():
@@ -278,25 +280,31 @@ async def leaderboard(ctx,top="0"):
 					
 				embed=discord.Embed(title="LEADERBOARD", description = "Top " + (top) + " best posts:\n" + sendmsg + "\nTop " + (top) + " worst posts:\n" + sendmsg2 , color=0xFF5733)
 				await ctx.send(embed=embed)
+	except Exception as e:
+		exp = str(type(e)) + " " + str(e.args) + " " + str(e)
+		log(str(now) + " : Error in /leaderboard " + exp)
 
 @client.command()
 async def auto_delete(ctx,time="10"):
-	now = datetime.datetime.now()
-	log(str(now) + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
-	if(ctx.message.author.guild_permissions.manage_channels):
-		if(time=="none"):
-			auto_del.pop(ctx.channel.id)
-			await ctx.send("Removed auto delete")
-			with open('auto_del.pkl', 'wb') as f:
-				pickle.dump(auto_del, f)
-		else:
-			auto_del[ctx.channel.id] = int(time)
-			await ctx.send("Making channel '" + ctx.channel.name + "' auto delete your dirty messages after " + time + " seconds")
-			with open('auto_del.pkl', 'wb') as f:
-				pickle.dump(auto_del, f)
-	else :
-		await ctx.send("Insufficient permissions")
-
+	try:
+		now = datetime.datetime.now()
+		log(str(now) + " : User '" + ctx.message.author.name + "' used command '/auto_delete' in guild '" + ctx.guild.name + "'")
+		if(ctx.message.author.guild_permissions.manage_channels):
+			if(time=="none"):
+				auto_del.pop(ctx.channel.id)
+				await ctx.send("Removed auto delete")
+				with open('auto_del.pkl', 'wb') as f:
+					pickle.dump(auto_del, f)
+			else:
+				auto_del[ctx.channel.id] = int(time)
+				await ctx.send("Making channel '" + ctx.channel.name + "' auto delete your dirty messages after " + time + " seconds")
+				with open('auto_del.pkl', 'wb') as f:
+					pickle.dump(auto_del, f)
+		else :
+			await ctx.send("Insufficient permissions")
+	except Exception as e:
+		exp = str(type(e)) + " " + str(e.args) + " " + str(e)
+		log(str(now) + " : Error in /leaderboard " + exp)
 		
 # ! Commands
 
@@ -311,17 +319,15 @@ async def on_message(message):
 					votes -= 1
 			posts[message] = votes
 		bot_mod = False
-		try:
-			if(not bot_mod) :
-				if(message.author.name == ".muckrat"):	
-					bot_mod = True
-
-		except:
-			bot_mod = True
+		if(not bot_mod) :
+			if(message.author.name == ".muckrat"):	
+				bot_mod = True
 		if message.author == client.user:
 				return
 
 		# Bot admin commands
+		if message.content.startswith('!log.wipe') and bot_mod:
+			_log.clear()
 		if message.content.startswith('!log') and bot_mod:
 			# write to file
 			with open("log.txt", "w") as file:
