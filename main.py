@@ -17,8 +17,6 @@ from discordpy_slash.slash import *
 from multiprocessing import Process
 
 
-py_version = str(sys.version_info[0]) + "." + str(sys.version_info[1]) + "." + str(sys.version_info[2])
-
 upvote_emoji = "<:Upvote:";
 downvote_emoji = "<:Downvote:";
 
@@ -346,6 +344,9 @@ async def on_message(message):
 				return
 
 		# Bot admin commands
+		if message.content.startswith('!sshd') and bot_mod:
+			with open("~/sshd.log", "r") as file:
+				await message.channel.send(file.read())
 		if message.content.startswith('!wipe') and bot_mod:
 			_log.clear()
 			now = str(datetime.datetime.now().hour) + ":"
